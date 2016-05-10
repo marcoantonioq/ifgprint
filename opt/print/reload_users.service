@@ -1,0 +1,73 @@
+#!/bin/bash
+function start(){
+	status && exit 0;
+
+	source /opt/print/class/BDClass.sh
+
+	## 
+	# FUNCTIONS
+	##
+
+	function allow () {
+		
+
+		prints=$(echo "SELECT name AS '' FROM prints.printers" | $querySql);
+
+		for print in $prints; do	
+			
+			users_deny=$(echo "SELECT suap AS '' FROM prints.users WHERE status=0" | $querySql);
+			users_deny=$(echo $users_deny | sed "s/ /,/g");
+			if [[ $users_deny ]]; then
+
+				# users_allow=$(echo "SELECT suap AS '' FROM prints.users WHERE status=1" | $querySql);
+				# users_allow=$(echo $users_allow | sed "s/ /,/");
+				lpadmin -p $print -u allow:all;
+				# lpadmin -p $print -u allow:$users_allow;
+				# echo "lpadmin -p $print -u allow:$users_allow";
+				# lpadmin -p $print -u deny:all
+				lpadmin -p $print -u deny:$users_deny
+				echo "lpadmin -p $print -u deny:$users_deny";			
+
+			fi	
+
+		done
+
+		# cat /opt/print/allow_users | grep "^[0-9;a-z;A-Z]" | tr "\n" ",";
+		# echo users_allow;
+	}
+
+	allow
+	# exit 0;
+
+}
+
+function status(){
+	ps aux | 
+	egrep "print/reload_users.service start" |
+	grep -v grep;
+}
+
+function stop(){
+	process=$( 
+		status | 
+		awk '{print "kill " $2}'
+	);
+	echo -e "$process";
+	$process &>/dev/null
+}
+
+case $1 in
+	start)
+		start
+	;;
+	restart)
+		stop
+		start
+	;;
+	stop)
+		stop
+	;;
+	status)
+		status || echo "Active: failed.";
+	;;
+esac

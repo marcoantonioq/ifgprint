@@ -1,0 +1,90 @@
+#!/bin/bash
+source /opt/print/class/BDClass.sh
+
+## 
+# FUNCTIONS
+##
+
+
+function convertToPDF(){
+	FOLDER=$(dirname $1);
+	FILE=$(basename $1);
+	FILENAME=${FILE%.*};
+	EXTENSION="${FILE##*.}";
+	if [[ 
+		("doc" == $EXTENSION) ||
+		("txt" == $EXTENSION) ||
+		("docx" == $EXTENSION) ||
+		("xls" == $EXTENSION) ||
+		("xlt" == $EXTENSION) ||
+		("dot" == $EXTENSION) ||
+		("fodt" == $EXTENSION) ||
+		("html" == $EXTENSION) ||
+		("odt" == $EXTENSION) ||
+		("ott" == $EXTENSION)
+	]]; then
+			libreoffice --headless -convert-to pdf --outdir $FOLDER $1 &>/dev/null
+			EXTENSION="pdf";		
+	fi	
+	# echo "FILE: $FILE";
+	# echo "FILENAME: $FILENAME";
+	# echo "EXTENSION: $EXTENSION";
+	# echo "FOLDER: $FOLDER";
+	
+	### return::: PATH_FILE:
+	echo "$FOLDER/$FILENAME.$EXTENSION";
+}
+
+
+# IF params == true {imprimir arquivo}
+if [[ $1 ]]; then
+	convertToPDF $1
+	exit 0;
+fi
+
+
+
+# ## 
+# # LOOOP
+# ##
+
+# while :
+# do
+
+# 	spool=$(echo "SELECT id, file_dir FROM spools WHERE status=1" | $querySql);
+# 	while read line
+# 	do 	
+# 		id=$(echo $line | awk '{print $1}');
+# 		if [[ $id == "id" || -z $id ]]; then
+# 			echo $line;
+# 			continue
+# 		fi
+# 		file_dir=$(echo $line |  cut -d" " -f 2-);
+# 		params=$(echo "SELECT params as '' FROM spools WHERE id=$id LIMIT 1" | $querySql | tr -d '\n');
+		
+# 		# echo "id: $id";
+# 		# echo -e "\tFILE_DIR: $file_dir";
+# 		# echo -e "\tPARAMS: $params";
+
+		
+# 		for file in $file_dir; do
+# 			echo "lp $params $file";
+# 			job=$( lp $params $file | awk '{print $4}' | cut -d- -f2 );
+# 		done
+
+# 		if [[ $job ]]; then
+# 			echo "UPDATE spools SET job='$job', status='0' WHERE id=$id;" | $querySql;
+# 		else 
+# 			echo "Falid print";
+# 		fi
+
+# 	done <<< "$spool";
+
+# 	# echo "Loop $RELOAD_TIME_SHORT";
+# 	sleep $RELOAD_TIME_SHORT;
+
+# done
+
+## 
+# END LOOOP
+##

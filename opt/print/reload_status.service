@@ -1,0 +1,41 @@
+#!/bin/bash
+
+source /opt/print/class/BDClass.sh
+
+## 
+# LOOOP
+##
+
+while :
+do
+
+	var_tmp=$(echo "select id as '', name as '',ip as '' FROM printers" | $querySql);
+
+	while read line; do 
+		
+		#echo $line;
+
+		id=$(echo $line | cut -d" " -f 1);
+		print=$(echo $line | cut -d" " -f 2);
+		ip=$(echo $line | cut -d" " -f 3);
+
+		if ping -c 1 $ip &>/dev/null ; then
+			echo "UPDATE prints.printers SET status=1 WHERE id=$id;" | $querySql &>/dev/null;
+		else
+			echo "UPDATE prints.printers SET status=0 WHERE id=$id;" | $querySql &>/dev/null;
+		fi
+		
+	done <<< "$var_tmp";
+	
+	echo "Loop $RELOAD_TIME_SHORT";
+	sleep $RELOAD_TIME_SHORT;
+
+	clear
+
+done
+
+
+## 
+# END LOOOP
+##
+

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Service
+WEB_APP="/var/www/html/prints/app"; 		## Diretorio versão web
+WEBROOT="$WEB_APP/webroot"; 		## Diretorio versão web
+
+# Database
+DATABASE="prints"		## base de dados
+HOST="localhost"		## servidor database
+PASSWORD="password"		## senha database
+USER="root"				## usuário database
+
+# Arquivos para auditoria (LOGS)
+PRINTS_LOG="/var/log/print.log"; 				## erro aplicação
+PAGE_LOG="/var/log/cups/page_log"; 				## arquivo de log do cups
+
+
+RELOAD_TIME_DEFAULT="10";
+RELOAD_TIME_SHORT="2";
+RELOAD_TIME_BRIEF="15";
+RELOAD_TIME_MINUTE="60";
+RELOAD_TIME_HOURS="3600";

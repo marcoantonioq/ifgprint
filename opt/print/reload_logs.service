@@ -1,0 +1,101 @@
+#!/bin/bash
+
+source /opt/print/class/BDClass.sh
+
+# Data base
+data=$(date "+%Y-%m-%d-");						## Data
+page_auditoria="/var/log/cups/"$data"PAGE_LOG"; ## arquivo com os logs lido
+var_tmp="/var/log/cups/var_tmp";
+
+declare -a params;
+
+
+
+## 
+# LOOOP
+##
+
+while :
+do
+
+	if [[ -f $PAGE_LOG ]]; then
+
+		if [[ -f $var_tmp ]]; then
+			sort $var_tmp | uniq >> $PAGE_LOG;
+		fi
+		
+		LOG=`cat $PAGE_LOG`;
+		echo -e "$LOG" > $var_tmp;
+		echo -e "$LOG" >> $page_auditoria;
+		rm $PAGE_LOG;
+
+		while read line; do 
+			if [[ $line ]]; then
+
+
+				params=$(echo -e $line | sed 's/ \[\"//g; s/\[\"//g; s/\"\]/;/g');
+			
+				print=$(echo $params | cut -d \; -f 1);
+				user=$(echo $params | cut -d \; -f 2);
+				job=$(echo $params | cut -d \; -f 3);
+				date=$(echo $params | cut -d \; -f 4 | 
+					sed '
+						s/\[//;
+						s/:/ /g;
+						s/\// /g;
+						s/Jan/1/;
+						s/Feb/2/;
+						s/Mar/3/;
+						s/Apr/4/;
+						s/May/5/;
+						s/Jun/6/;
+						s/Jul/7/;
+						s/Aug/8/;
+						s/Sep/9/;
+						s/Oct/10/;
+						s/Nov/11/;
+						s/Dec/12/;
+					');
+				date=$(echo "$date" | awk -F' ' '{ printf "%s/%s/%s %s:%s:%s", $3, $2, $1, $4, $5, $6 }');
+				pages=$(echo $params | cut -d \; -f 5);
+				copies=$(echo $params | cut -d \; -f 6);
+				host=$(echo $params | cut -d \; -f 8);
+				file=$(echo $params | cut -d \; -f 9);
+				patams1=$(echo $params | cut -d \; -f 10);
+				patams2=$(echo $params | cut -d \; -f 11);
+
+				echo "print:" $print;
+				echo "job:" $job;
+				echo "user:" $user;
+				echo "date:" $date;
+				echo "pages:" $pages;
+				echo "copies:" $copies;
+				echo "host:" $host;
+				echo "file:" $file;
+				echo
+
+
+				# # INSERT users
+				user_id=$( setUser $user; );
+				# echo "User ID: $user_id";
+				
+				# INSERT prints
+				printer_id=$( setPrint $print; );
+				# echo "Print ID: "$printer_id;
+				
+				# # INSERT jobs
+				setJob $job "$user_id" "$printer_id" "$date" "$pages" "$copies" "$host" "$file"
+			fi
+		done < $var_tmp;
+		rm $var_tmp;
+	fi
+	
+	echo "Loop $RELOAD_TIME_BRIEF";
+	sleep $RELOAD_TIME_BRIEF;
+
+done
+
+
+## 
+# END LOOOP
+##
